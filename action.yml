@@ -1,9 +1,9 @@
-name: 'AI-based PR Reviewer & Summarizer with Chat Capabilities'
-description: 'AI-based PR Reviewer & Summarizer with Chat Capabilities'
+name: 'Mistral AI-based PR Reviewer & Summarizer with Chat Capabilities'
+description: 'Mistral AI-based PR Reviewer & Summarizer with Chat Capabilities'
 branding:
   icon: 'git-merge'
   color: 'orange'
-author: 'CodeRabbit LLC'
+author: 'Mistral AI'
 inputs:
   debug:
     required: false
@@ -146,16 +146,16 @@ inputs:
     default: 'false'
   openai_base_url:
     required: false
-    description: 'The url of the openai api interface.'
+    description: 'The url of the api interface. Use https://api.fireworks.ai/inference/v1 for Fireworks AI, https://api.mistral.ai/v1 for Mistral AI.'
     default: 'https://api.openai.com/v1'
   openai_light_model:
     required: false
     description:
-      'Model to use for simple tasks like summarizing diff on a file.'
+      'Model to use for simple tasks like summarizing diff on a file. For Fireworks AI, use models like accounts/fireworks/models/llama-v3p1-8b-instruct. For Mistral AI, use models like mistral-small-latest.'
     default: 'gpt-3.5-turbo'
   openai_heavy_model:
     required: false
-    description: 'Model to use for complex tasks such as code reviews.'
+    description: 'Model to use for complex tasks such as code reviews. For Fireworks AI, use models like accounts/fireworks/models/llama-v3p1-70b-instruct. For Mistral AI, use models like mistral-large-latest.'
     default: 'gpt-4'
   openai_model_temperature:
     required: false
@@ -182,8 +182,8 @@ inputs:
     required: false
     description: 'System message to be sent to OpenAI'
     default: |
-      You are `@coderabbitai` (aka `github-actions[bot]`), a language model 
-      trained by OpenAI. Your purpose is to act as a highly experienced 
+      You are `@mistralai` (aka `github-actions[bot]`), a language model 
+      powered by Mistral AI. Your purpose is to act as a highly experienced 
       software engineer and provide a thorough review of the code hunks
       and suggest code snippets to improve key areas such as:
         - Logic
@@ -213,7 +213,7 @@ inputs:
       - **Changes**: A markdown table of files and their summaries. Group files 
         with similar changes together into a single row to save space.
       - **Poem**: Below the changes, include a whimsical, short poem written by 
-        a rabbit to celebrate the changes. Format the poem as a quote using 
+        Mistral AI to celebrate the changes. Format the poem as a quote using 
         the ">" symbol and feel free to use emojis where relevant.
 
       Avoid additional commentary as this summary will be added as a comment on the 

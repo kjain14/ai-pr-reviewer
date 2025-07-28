@@ -1,19 +1,18 @@
-# CodeRabbit Pro
+# Mistral AI PR Reviewer
 
-This is an old version of [CodeRabbit](http://coderabbit.ai) and is now in the maintenance mode.
-We recommend installing the Pro version from [CodeRabbit](http://coderabbit.ai). The Pro version is a total redesign and offers significantly better reviews that learn from your usage and improve over time. CodeRabbit Pro is free for open source projects. 
+This is a Mistral AI-powered PR reviewer and summarizer for GitHub pull requests. It provides intelligent code reviews using Mistral's advanced language models. 
 
 [![Discord](https://img.shields.io/badge/Join%20us%20on-Discord-blue?logo=discord&style=flat-square)](https://discord.gg/GsXnASn26c)
 
-# AI-based PR reviewer and summarizer
+# Mistral AI-based PR reviewer and summarizer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub](https://img.shields.io/github/last-commit/coderabbitai/ai-pr-reviewer/main?style=flat-square)](https://github.com/coderabbitai/ai-pr-reviewer/commits/main)
 
 ## Overview
 
-CodeRabbit `ai-pr-reviewer` is an AI-based code reviewer and summarizer for
-GitHub pull requests using OpenAI's `gpt-3.5-turbo` and `gpt-4` models. It is
+Mistral `ai-pr-reviewer` is an AI-based code reviewer and summarizer for
+GitHub pull requests using Mistral AI models, OpenAI models, or Fireworks AI models. It is
 designed to be used as a GitHub Action and can be configured to run on every
 pull request and review comments
 
@@ -30,12 +29,15 @@ pull request and review comments
   and reduce noise by tracking changed files between commits and the base of the
   pull request.
 - **"Light" model for summary**: Designed to be used with a "light"
-  summarization model (e.g. `gpt-3.5-turbo`) and a "heavy" review model (e.g.
-  `gpt-4`). _For best results, use `gpt-4` as the "heavy" model, as thorough
+  summarization model (e.g. `mistral-small-latest`) and a "heavy" review model (e.g.
+  `mistral-large-latest`). _For best results, use `mistral-large-latest` as the "heavy" model, as thorough
   code review needs strong reasoning abilities._
 - **Chat with bot**: Supports conversation with the bot in the context of lines
   of code or entire files, useful for providing context, generating test cases,
   and reducing code complexity.
+- **Apply suggestions as commits**: When the AI provides code suggestions, 
+  GitHub renders native "Apply suggestion" buttons that you can click to 
+  commit the changes directly to your PR.
 - **Smart review skipping**: By default, skips in-depth review for simple
   changes (e.g. typo fixes) and when changes look good for the most part. It can
   be disabled by setting `review_simple_changes` and `review_comment_lgtm` to
@@ -87,10 +89,10 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: coderabbitai/ai-pr-reviewer@latest
+      - uses: mistralai/ai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         with:
           debug: false
           review_simple_changes: false
@@ -101,22 +103,18 @@ jobs:
 
 - `GITHUB_TOKEN`: This should already be available to the GitHub Action
   environment. This is used to add comments to the pull request.
-- `OPENAI_API_KEY`: use this to authenticate with OpenAI API. You can get one
-  [here](https://platform.openai.com/account/api-keys). Please add this key to
-  your GitHub Action secrets.
-- `OPENAI_API_ORG`: (optional) use this to use the specified organization with
-  OpenAI API if you have multiple. Please add this key to your GitHub Action
-  secrets.
+- `MISTRAL_API_KEY`: use this to authenticate with Mistral API. You can get one
+  [here](https://console.mistral.ai). Please add this key to your GitHub Action secrets.
+- `OPENAI_API_KEY`: (optional) use this to authenticate with OpenAI API if you prefer OpenAI models.
+- `FIREWORKS_API_KEY`: (optional) use this to authenticate with Fireworks AI if you prefer Fireworks models.
 
-### Models: `gpt-4` and `gpt-3.5-turbo`
+### Models: Mistral AI, OpenAI, and Fireworks AI
 
-Recommend using `gpt-3.5-turbo` for lighter tasks such as summarizing the
-changes (`openai_light_model` in configuration) and `gpt-4` for more complex
+Recommend using `mistral-small-latest` for lighter tasks such as summarizing the
+changes (`openai_light_model` in configuration) and `mistral-large-latest` for more complex
 review and commenting tasks (`openai_heavy_model` in configuration).
 
-Costs: `gpt-3.5-turbo` is dirt cheap. `gpt-4` is orders of magnitude more
-expensive, but the results are vastly superior. We are typically spending $20 a
-day for a 20 developer team with `gpt-4` based review and commenting.
+Costs: Mistral AI models offer excellent performance at competitive pricing. The system also supports OpenAI and Fireworks AI models as alternatives.
 
 ### Prompts & Configuration
 
@@ -130,7 +128,7 @@ value. For example, to review docs/blog posts, you can use the following prompt:
 
 ```yaml
 system_message: |
-  You are `@coderabbitai` (aka `github-actions[bot]`), a language model
+  You are `@mistralai` (aka `github-actions[bot]`), a language model
   trained by OpenAI. Your purpose is to act as a highly experienced
   DevRel (developer relations) professional with focus on cloud-native
   infrastructure.
@@ -157,15 +155,21 @@ system_message: |
 
 </details>
 
-## Conversation with CodeRabbit
+## Conversation with Mistral AI
 
 You can reply to a review comment made by this action and get a response based
 on the diff context. Additionally, you can invite the bot to a conversation by
-tagging it in the comment (`@coderabbitai`).
+tagging it in the comment (`@mistralai`).
 
 Example:
 
-> @coderabbitai Please generate a test plan for this file.
+> @mistralai Please generate a test plan for this file.
+
+## Applying AI Suggestions
+
+When the AI provides code suggestions, GitHub automatically renders native "Apply suggestion" 
+buttons in the review comments. Simply click these buttons to commit the suggested changes 
+directly to your PR branch - no manual copy-paste needed!
 
 Note: A review comment is a comment made on a diff or a file in the pull
 request.
@@ -177,7 +181,7 @@ to review documentation, you can ignore PRs that only change the documentation.
 To ignore a PR, add the following keyword in the PR description:
 
 ```text
-@coderabbitai: ignore
+@mistralai: ignore
 ```
 
 ## Examples
@@ -247,10 +251,10 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - uses: coderabbitai/ai-pr-reviewer@latest
+      - uses: mistralai/ai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         with:
           debug: false
           review_simple_changes: false
