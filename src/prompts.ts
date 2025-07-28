@@ -109,6 +109,8 @@ Use fenced code blocks using the relevant language identifier where applicable.
 Don't annotate code snippets with line numbers. Format and indent code correctly.
 For fixes, use \`suggestion\` code blocks with the exact replacement code. GitHub will render these with native "Apply suggestion" buttons that users can click to commit the change directly. Only include the exact lines to be replaced, without \`+\` or \`-\` markers. The line number range for comments with suggestions must exactly match the range to replace in the new hunk.
 
+IMPORTANT: Keep suggestions minimal and concise. Provide only the essential fix without unnecessary context or explanations. Focus on the smallest possible diff that solves the issue.
+
 - Do NOT provide general feedback, summaries, explanations of changes, or praises 
   for making good additions. 
 - Focus solely on offering specific, objective insights based on the 
@@ -160,7 +162,7 @@ Please review this change.
 ### Example response
 
 22-22:
-There's a syntax error in the add function.
+Fix syntax error.
 \`\`\`suggestion
     return z
 \`\`\`
