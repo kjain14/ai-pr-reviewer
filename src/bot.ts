@@ -33,6 +33,14 @@ export class Bot {
   constructor(options: Options, openaiOptions: OpenAIOptions) {
     this.options = options
     
+    // Debug logging for API key detection
+    if (options.debug) {
+      info(`Debug: MISTRAL_API_KEY present: ${!!process.env.MISTRAL_API_KEY}`)
+      info(`Debug: FIREWORKS_API_KEY present: ${!!process.env.FIREWORKS_API_KEY}`)
+      info(`Debug: OPENAI_API_KEY present: ${!!process.env.OPENAI_API_KEY}`)
+      info(`Debug: Initial apiBaseUrl: ${options.apiBaseUrl}`)
+    }
+    
     // Priority order: Mistral > Fireworks > OpenAI
     // Each provider is used if their API key is available
     if (process.env.MISTRAL_API_KEY) {
@@ -42,6 +50,12 @@ export class Bot {
       // Auto-set base URL only if using the default OpenAI URL
       if (options.apiBaseUrl === 'https://api.openai.com/v1') {
         options.apiBaseUrl = 'https://api.mistral.ai/v1'
+        if (options.debug) {
+          info(`Debug: Auto-set base URL to Mistral: ${options.apiBaseUrl}`)
+        }
+      }
+      if (options.debug) {
+        info(`Debug: Using Mistral AI with model: ${this.mistralModel}`)
       }
       // Otherwise use whatever custom URL the user provided
     }
@@ -52,10 +66,19 @@ export class Bot {
       // Auto-set base URL only if using the default OpenAI URL
       if (options.apiBaseUrl === 'https://api.openai.com/v1') {
         options.apiBaseUrl = 'https://api.fireworks.ai/inference/v1'
+        if (options.debug) {
+          info(`Debug: Auto-set base URL to Fireworks: ${options.apiBaseUrl}`)
+        }
+      }
+      if (options.debug) {
+        info(`Debug: Using Fireworks AI with model: ${this.fireworksModel}`)
       }
       // Otherwise use whatever custom URL the user provided
     } 
     else if (process.env.OPENAI_API_KEY) {
+      if (options.debug) {
+        info(`Debug: Using OpenAI with base URL: ${options.apiBaseUrl}`)
+      }
       const currentDate = new Date().toISOString().split('T')[0]
       const systemMessage = `${options.systemMessage} 
 Knowledge cutoff: ${openaiOptions.tokenLimits.knowledgeCutOff}
