@@ -184,23 +184,6 @@ To ignore a PR, add the following keyword in the PR description:
 @mistralai: ignore
 ```
 
-## Examples
-
-Some of the reviews done by ai-pr-reviewer
-
-![PR Summary](./docs/images/PRSummary.png)
-
-![PR Release Notes](./docs/images/ReleaseNotes.png)
-
-![PR Review](./docs/images/section-1.png)
-
-![PR Conversation](./docs/images/section-3.png)
-
-Any suggestions or pull requests for improving the prompts are highly
-appreciated.
-
-## Contribute
-
 ### Developing
 
 > First, you'll need to have a reasonably modern version of `node` handy, tested
