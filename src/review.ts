@@ -300,14 +300,7 @@ ${
 `
   }
 
-  // update the existing comment with in progress status
-  const inProgressSummarizeCmt = commenter.addInProgressStatus(
-    existingSummarizeCmtBody,
-    statusMsg
-  )
-
-  // add in progress status to the summarize comment
-  await commenter.comment(`${inProgressSummarizeCmt}`, SUMMARIZE_TAG, 'replace')
+  // Skip in-progress status updates for minimal output
 
   const summariesFailed: string[] = []
 
@@ -443,7 +436,7 @@ ${filename}: ${summary}
       if (releaseNotesResponse === '') {
         info('release notes: nothing obtained from openai')
       } else {
-        let message = '### Summary by Mistral AI\n\n'
+        let message = ''
         message += releaseNotesResponse
         try {
           await commenter.updateDescription(
@@ -691,6 +684,11 @@ ${commentChain}
 
     await Promise.all(reviewPromises)
 
+    // If no critical issues found, add a simple LGTM comment
+    if (reviewCount === 0) {
+      statusMsg = 'LGTM!'
+    }
+
     // Add review status information if not disabled
     if (!options.disableStatus) {
       statusMsg += `
@@ -730,22 +728,6 @@ ${
 `
     }
 
-    statusMsg += `<details>
-<summary>Tips</summary>
-
-### Chat with <img src="https://mistral.ai/images/logo_hubc88c4ece131b9c17d97c0480e48a655_13615_256x0_resize_q75_lanczos.jpg" alt="Mistral AI" width="20" height="20">  Mistral AI Bot (\`@mistralai\`)
-- Reply on review comments left by this bot to ask follow-up questions. A review comment is a comment on a diff or a file.
-- Invite the bot into a review comment chain by tagging \`@mistralai\` in a reply.
-
-### Code suggestions
-- The bot may make code suggestions, but please review them carefully before committing since the line number ranges may be misaligned. 
-- You can edit the comment made by the bot and manually tweak the suggestion if it is slightly off.
-
-### Pausing incremental reviews
-- Add \`@mistralai: ignore\` anywhere in the PR description to pause further reviews from the bot.
-
-</details>
-`
     // add existing_comment_ids_block with latest head sha
     summarizeComment += `\n${commenter.addReviewedCommitId(
       existingCommitIdsBlock,
