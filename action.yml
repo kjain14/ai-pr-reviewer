@@ -144,6 +144,14 @@ inputs:
     required: false
     description: 'Disable release notes'
     default: 'false'
+  disable_summary:
+    required: false
+    description: 'Disable PR summary generation, only provide code review comments'
+    default: 'false'
+  disable_status:
+    required: false
+    description: 'Disable status information like file counts and review statistics'
+    default: 'false'
   openai_base_url:
     required: false
     description: 'The url of the api interface. Use https://api.fireworks.ai/inference/v1 for Fireworks AI, https://api.mistral.ai/v1 for Mistral AI.'

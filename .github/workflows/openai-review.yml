@@ -33,6 +33,8 @@ jobs:
         with:
           debug: true
           review_comment_lgtm: false
+          disable_summary: true
+          disable_status: true
           openai_heavy_model: mistral-medium-2505
           openai_light_model: mistral-small-latest
           path_filters: |

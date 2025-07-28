@@ -262,28 +262,32 @@ ${hunks.oldHunk}
     return
   }
 
-  let statusMsg = `<details>
+  let statusMsg = ''
+  
+  // Only show status information if not disabled
+  if (!options.disableStatus) {
+    statusMsg = `<details>
 <summary>Commits</summary>
 Files that changed from the base of the PR and between ${highestReviewedCommitId} and ${
-    context.payload.pull_request.head.sha
-  } commits.
+      context.payload.pull_request.head.sha
+    } commits.
 </details>
 ${
-  filesAndChanges.length > 0
-    ? `
+    filesAndChanges.length > 0
+      ? `
 <details>
 <summary>Files selected (${filesAndChanges.length})</summary>
 
 * ${filesAndChanges
-        .map(([filename, , , patches]) => `${filename} (${patches.length})`)
-        .join('\n* ')}
+          .map(([filename, , , patches]) => `${filename} (${patches.length})`)
+          .join('\n* ')}
 </details>
 `
-    : ''
-}
+      : ''
+  }
 ${
-  filterIgnoredFiles.length > 0
-    ? `
+    filterIgnoredFiles.length > 0
+      ? `
 <details>
 <summary>Files ignored due to filter (${filterIgnoredFiles.length})</summary>
 
@@ -291,9 +295,10 @@ ${
 
 </details>
 `
-    : ''
-}
+      : ''
+  }
 `
+  }
 
   // update the existing comment with in progress status
   const inProgressSummarizeCmt = commenter.addInProgressStatus(
@@ -372,85 +377,93 @@ ${
 
   const summaryPromises = []
   const skippedFiles = []
-  for (const [filename, fileContent, fileDiff] of filesAndChanges) {
-    if (options.maxFiles <= 0 || summaryPromises.length < options.maxFiles) {
-      summaryPromises.push(
-        openaiConcurrencyLimit(
-          async () => await doSummary(filename, fileContent, fileDiff)
+  let summaries: Array<[string, string, boolean]> = []
+  
+  // Only run per-file summarization if summary is enabled
+  if (!options.disableSummary) {
+    for (const [filename, fileContent, fileDiff] of filesAndChanges) {
+      if (options.maxFiles <= 0 || summaryPromises.length < options.maxFiles) {
+        summaryPromises.push(
+          openaiConcurrencyLimit(
+            async () => await doSummary(filename, fileContent, fileDiff)
+          )
         )
-      )
-    } else {
-      skippedFiles.push(filename)
+      } else {
+        skippedFiles.push(filename)
+      }
     }
-  }
 
-  const summaries = (await Promise.all(summaryPromises)).filter(
-    summary => summary !== null
-  ) as Array<[string, string, boolean]>
+    summaries = (await Promise.all(summaryPromises)).filter(
+      summary => summary !== null
+    ) as Array<[string, string, boolean]>
 
-  if (summaries.length > 0) {
-    const batchSize = 10
-    // join summaries into one in the batches of batchSize
-    // and ask the bot to summarize the summaries
-    for (let i = 0; i < summaries.length; i += batchSize) {
-      const summariesBatch = summaries.slice(i, i + batchSize)
-      for (const [filename, summary] of summariesBatch) {
-        inputs.rawSummary += `---
+    if (summaries.length > 0) {
+      const batchSize = 10
+      // join summaries into one in the batches of batchSize
+      // and ask the bot to summarize the summaries
+      for (let i = 0; i < summaries.length; i += batchSize) {
+        const summariesBatch = summaries.slice(i, i + batchSize)
+        for (const [filename, summary] of summariesBatch) {
+          inputs.rawSummary += `---
 ${filename}: ${summary}
 `
-      }
-      // ask chatgpt to summarize the summaries
-      const [summarizeResp] = await heavyBot.chat(
-        prompts.renderSummarizeChangesets(inputs),
-        {}
-      )
-      if (summarizeResp === '') {
-        warning('summarize: nothing obtained from openai')
-      } else {
-        inputs.rawSummary = summarizeResp
+        }
+        // ask chatgpt to summarize the summaries
+        const [summarizeResp] = await heavyBot.chat(
+          prompts.renderSummarizeChangesets(inputs),
+          {}
+        )
+        if (summarizeResp === '') {
+          warning('summarize: nothing obtained from openai')
+        } else {
+          inputs.rawSummary = summarizeResp
+        }
       }
     }
   }
 
-  // final summary
-  const [summarizeFinalResponse] = await heavyBot.chat(
-    prompts.renderSummarize(inputs),
-    {}
-  )
-  if (summarizeFinalResponse === '') {
-    info('summarize: nothing obtained from openai')
-  }
-
-  if (options.disableReleaseNotes === false) {
-    // final release notes
-    const [releaseNotesResponse] = await heavyBot.chat(
-      prompts.renderSummarizeReleaseNotes(inputs),
+  let summarizeComment = ''
+  
+  if (!options.disableSummary) {
+    // final summary
+    const [summarizeFinalResponse] = await heavyBot.chat(
+      prompts.renderSummarize(inputs),
       {}
     )
-    if (releaseNotesResponse === '') {
-      info('release notes: nothing obtained from openai')
-    } else {
-      let message = '### Summary by Mistral AI\n\n'
-      message += releaseNotesResponse
-      try {
-        await commenter.updateDescription(
-          context.payload.pull_request.number,
-          message
-        )
-      } catch (e: any) {
-        warning(`release notes: error from github: ${e.message as string}`)
+    if (summarizeFinalResponse === '') {
+      info('summarize: nothing obtained from openai')
+    }
+
+    if (options.disableReleaseNotes === false) {
+      // final release notes
+      const [releaseNotesResponse] = await heavyBot.chat(
+        prompts.renderSummarizeReleaseNotes(inputs),
+        {}
+      )
+      if (releaseNotesResponse === '') {
+        info('release notes: nothing obtained from openai')
+      } else {
+        let message = '### Summary by Mistral AI\n\n'
+        message += releaseNotesResponse
+        try {
+          await commenter.updateDescription(
+            context.payload.pull_request.number,
+            message
+          )
+        } catch (e: any) {
+          warning(`release notes: error from github: ${e.message as string}`)
+        }
       }
     }
-  }
 
-  // generate a short summary as well
-  const [summarizeShortResponse] = await heavyBot.chat(
-    prompts.renderSummarizeShort(inputs),
-    {}
-  )
-  inputs.shortSummary = summarizeShortResponse
+    // generate a short summary as well
+    const [summarizeShortResponse] = await heavyBot.chat(
+      prompts.renderSummarizeShort(inputs),
+      {}
+    )
+    inputs.shortSummary = summarizeShortResponse
 
-  let summarizeComment = `${summarizeFinalResponse}
+    summarizeComment = `${summarizeFinalResponse}
 ${RAW_SUMMARY_START_TAG}
 ${inputs.rawSummary}
 ${RAW_SUMMARY_END_TAG}
@@ -458,37 +471,41 @@ ${SHORT_SUMMARY_START_TAG}
 ${inputs.shortSummary}
 ${SHORT_SUMMARY_END_TAG}
 `
+  }
 
-  statusMsg += `
+  // Add additional status information if not disabled
+  if (!options.disableStatus) {
+    statusMsg += `
 ${
-  skippedFiles.length > 0
-    ? `
+    skippedFiles.length > 0
+      ? `
 <details>
 <summary>Files not processed due to max files limit (${
-        skippedFiles.length
-      })</summary>
+          skippedFiles.length
+        })</summary>
 
 * ${skippedFiles.join('\n* ')}
 
 </details>
 `
-    : ''
-}
+      : ''
+  }
 ${
-  summariesFailed.length > 0
-    ? `
+    summariesFailed.length > 0
+      ? `
 <details>
 <summary>Files not summarized due to errors (${
-        summariesFailed.length
-      })</summary>
+          summariesFailed.length
+        })</summary>
 
 * ${summariesFailed.join('\n* ')}
 
 </details>
 `
-    : ''
-}
+      : ''
+  }
 `
+  }
 
   if (!options.disableReview) {
     const filesAndChangesReview = filesAndChanges.filter(([filename]) => {
@@ -674,31 +691,33 @@ ${commentChain}
 
     await Promise.all(reviewPromises)
 
-    statusMsg += `
+    // Add review status information if not disabled
+    if (!options.disableStatus) {
+      statusMsg += `
 ${
-  reviewsFailed.length > 0
-    ? `<details>
+      reviewsFailed.length > 0
+        ? `<details>
 <summary>Files not reviewed due to errors (${reviewsFailed.length})</summary>
 
 * ${reviewsFailed.join('\n* ')}
 
 </details>
 `
-    : ''
-}
+        : ''
+    }
 ${
-  reviewsSkipped.length > 0
-    ? `<details>
+      reviewsSkipped.length > 0
+        ? `<details>
 <summary>Files skipped from review due to trivial changes (${
-        reviewsSkipped.length
-      })</summary>
+            reviewsSkipped.length
+          })</summary>
 
 * ${reviewsSkipped.join('\n* ')}
 
 </details>
 `
-    : ''
-}
+        : ''
+    }
 <details>
 <summary>Review comments generated (${reviewCount + lgtmCount})</summary>
 
@@ -708,8 +727,10 @@ ${
 </details>
 
 ---
+`
+    }
 
-<details>
+    statusMsg += `<details>
 <summary>Tips</summary>
 
 ### Chat with <img src="https://mistral.ai/images/logo_hubc88c4ece131b9c17d97c0480e48a655_13615_256x0_resize_q75_lanczos.jpg" alt="Mistral AI" width="20" height="20">  Mistral AI Bot (\`@mistralai\`)
@@ -739,8 +760,10 @@ ${
     )
   }
 
-  // post the final summary comment
-  await commenter.comment(`${summarizeComment}`, SUMMARIZE_TAG, 'replace')
+  // post the final summary comment only if summary is enabled
+  if (!options.disableSummary) {
+    await commenter.comment(`${summarizeComment}`, SUMMARIZE_TAG, 'replace')
+  }
 }
 
 const splitPatch = (patch: string | null | undefined): string[] => {
