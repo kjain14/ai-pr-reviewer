@@ -7,7 +7,7 @@ import {octokit} from './octokit'
 const context = github_context
 const repo = context.repo
 
-export const COMMENT_GREETING = `${getInput('bot_icon')}   Mistral AI`
+export const COMMENT_GREETING = ``
 
 export const COMMENT_TAG =
   '<!-- This is an auto-generated comment by OSS Mistral AI -->'
@@ -761,8 +761,6 @@ ${chain}
     // otherwise do nothing
     if (start === -1 || end === -1) {
       return `${IN_PROGRESS_START_TAG}
-
-Currently reviewing new changes in this PR...
 
 ${statusMsg}
 
