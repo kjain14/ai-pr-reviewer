@@ -97,6 +97,9 @@ jobs:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
+          openai_base_url: 'https://api.mistral.ai/v1'
+          openai_light_model: 'mistral-small-latest'
+          openai_heavy_model: 'mistral-large-latest'
 ```
 
 #### Environment variables
@@ -110,11 +113,60 @@ jobs:
 
 ### Models: Mistral AI, OpenAI, and Fireworks AI
 
-Recommend using `mistral-small-latest` for lighter tasks such as summarizing the
-changes (`openai_light_model` in configuration) and `mistral-large-latest` for more complex
-review and commenting tasks (`openai_heavy_model` in configuration).
+This action supports multiple AI providers with Mistral AI as the primary recommendation.
 
-Costs: Mistral AI models offer excellent performance at competitive pricing. The system also supports OpenAI and Fireworks AI models as alternatives.
+#### Mistral AI Models (Recommended)
+
+Mistral AI offers state-of-the-art language models optimized for code understanding and generation:
+
+- **mistral-small-latest** (recommended for light tasks)
+  - Fast and cost-effective for summarizing changes
+  - Excellent for simple code reviews and documentation
+  - ~$0.20 per 1M tokens (input), ~$0.60 per 1M tokens (output)
+
+- **mistral-large-latest** (recommended for heavy tasks)  
+  - Superior reasoning capabilities for complex code reviews
+  - Best for identifying subtle bugs, security issues, and architectural problems
+  - Comprehensive understanding of multiple programming languages
+  - ~$3.00 per 1M tokens (input), ~$9.00 per 1M tokens (output)
+
+- **mistral-medium-latest** (balanced option)
+  - Good balance between cost and performance
+  - Suitable for most code review tasks
+  - ~$2.70 per 1M tokens (input), ~$8.10 per 1M tokens (output)
+
+#### Alternative Providers
+
+- **OpenAI**: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo` models
+- **Fireworks AI**: Various open-source models like Llama variants
+
+#### Cost Comparison
+
+Mistral AI models typically offer 2-3x better price-performance ratio compared to equivalent OpenAI models, making them ideal for teams doing frequent code reviews. For a 20-developer team, expect costs of:
+
+- Light usage (summaries only): ~$10-15/month with Mistral Small
+- Heavy usage (full reviews): ~$30-50/month with Mistral Large
+- Mixed usage: ~$20-35/month with appropriate model selection
+
+#### Choosing the Right Mistral Model
+
+**For most teams, we recommend:**
+- `openai_light_model: 'mistral-small-latest'` - Fast summaries and simple reviews
+- `openai_heavy_model: 'mistral-large-latest'` - Deep analysis and complex reasoning
+
+**For budget-conscious teams:**
+- Use `mistral-small-latest` for both light and heavy tasks
+- Enable `review_simple_changes: false` to reduce API calls
+
+**For high-volume enterprise teams:**
+- Consider `mistral-medium-latest` as a balanced middle ground
+- Implement custom filtering to only review critical files
+
+**Model Capabilities:**
+- **Code Understanding**: All models excel at syntax, patterns, and best practices
+- **Security Analysis**: Large > Medium > Small for detecting vulnerabilities  
+- **Architecture Review**: Large model recommended for system design feedback
+- **Multi-language Support**: All models support 50+ programming languages
 
 ### Prompts & Configuration
 
@@ -242,6 +294,9 @@ jobs:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
+          openai_base_url: 'https://api.mistral.ai/v1'
+          openai_light_model: 'mistral-small-latest'
+          openai_heavy_model: 'mistral-large-latest'
 ```
 
 See also:
