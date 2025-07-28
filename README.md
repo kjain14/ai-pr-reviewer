@@ -97,7 +97,8 @@ jobs:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
-          openai_base_url: 'https://api.mistral.ai/v1'
+          # The base URL is automatically set to Mistral when MISTRAL_API_KEY is provided
+          # openai_base_url: 'https://api.mistral.ai/v1'  
           openai_light_model: 'mistral-small-latest'
           openai_heavy_model: 'mistral-large-latest'
 ```
@@ -110,6 +111,31 @@ jobs:
   [here](https://console.mistral.ai). Please add this key to your GitHub Action secrets.
 - `OPENAI_API_KEY`: (optional) use this to authenticate with OpenAI API if you prefer OpenAI models.
 - `FIREWORKS_API_KEY`: (optional) use this to authenticate with Fireworks AI if you prefer Fireworks models.
+
+**Important**: You only need to set ONE of these API keys. The system will automatically detect which provider to use based on the available key and configure the appropriate base URL.
+
+#### Quick Reference
+
+| Provider | API Key | Auto Base URL | Popular Models |
+|----------|---------|---------------|----------------|
+| Mistral AI | `MISTRAL_API_KEY` | `https://api.mistral.ai/v1` | `mistral-small-latest`, `mistral-large-latest` |
+| Fireworks AI | `FIREWORKS_API_KEY` | `https://api.fireworks.ai/inference/v1` | `accounts/fireworks/models/llama-v3p1-*` |
+| OpenAI | `OPENAI_API_KEY` | `https://api.openai.com/v1` | `gpt-3.5-turbo`, `gpt-4` |
+
+**Custom URLs**: You can override the auto-detection by explicitly setting `openai_base_url`. This is useful for:
+- Self-hosted models
+- Proxy endpoints  
+- Alternative API gateways
+- Enterprise deployments
+
+Example with custom URL:
+```yaml
+env:
+  MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+with:
+  openai_base_url: 'https://my-proxy.company.com/mistral/v1'
+  openai_light_model: 'mistral-small-latest'
+```
 
 ### Models: Mistral AI, OpenAI, and Fireworks AI
 
@@ -137,8 +163,27 @@ Mistral AI offers state-of-the-art language models optimized for code understand
 
 #### Alternative Providers
 
-- **OpenAI**: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo` models
-- **Fireworks AI**: Various open-source models like Llama variants
+**Fireworks AI Configuration:**
+```yaml
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+with:
+  # Base URL automatically set to https://api.fireworks.ai/inference/v1
+  openai_light_model: 'accounts/fireworks/models/llama-v3p1-8b-instruct'
+  openai_heavy_model: 'accounts/fireworks/models/llama-v3p1-70b-instruct'
+```
+
+**OpenAI Configuration:**
+```yaml
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+with:
+  # Uses default base URL https://api.openai.com/v1
+  openai_light_model: 'gpt-3.5-turbo'
+  openai_heavy_model: 'gpt-4'
+```
 
 #### Cost Comparison
 
@@ -294,7 +339,8 @@ jobs:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
-          openai_base_url: 'https://api.mistral.ai/v1'
+          # The base URL is automatically set to Mistral when MISTRAL_API_KEY is provided
+          # openai_base_url: 'https://api.mistral.ai/v1'  
           openai_light_model: 'mistral-small-latest'
           openai_heavy_model: 'mistral-large-latest'
 ```

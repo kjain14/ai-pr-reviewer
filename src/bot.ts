@@ -33,18 +33,29 @@ export class Bot {
   constructor(options: Options, openaiOptions: OpenAIOptions) {
     this.options = options
     
-    // Check for Mistral API configuration
-    if (process.env.MISTRAL_API_KEY && options.apiBaseUrl.includes('mistral')) {
+    // Priority order: Mistral > Fireworks > OpenAI
+    // Each provider is used if their API key is available
+    if (process.env.MISTRAL_API_KEY) {
       this.useMistral = true
       this.mistralApiKey = process.env.MISTRAL_API_KEY
       this.mistralModel = openaiOptions.model
+      // Auto-set base URL only if using the default OpenAI URL
+      if (options.apiBaseUrl === 'https://api.openai.com/v1') {
+        options.apiBaseUrl = 'https://api.mistral.ai/v1'
+      }
+      // Otherwise use whatever custom URL the user provided
     }
-    // Check for Fireworks API configuration
-    else if (process.env.FIREWORKS_API_KEY && options.apiBaseUrl.includes('fireworks')) {
+    else if (process.env.FIREWORKS_API_KEY) {
       this.useFireworks = true
       this.fireworksApiKey = process.env.FIREWORKS_API_KEY
       this.fireworksModel = openaiOptions.model
-    } else if (process.env.OPENAI_API_KEY) {
+      // Auto-set base URL only if using the default OpenAI URL
+      if (options.apiBaseUrl === 'https://api.openai.com/v1') {
+        options.apiBaseUrl = 'https://api.fireworks.ai/inference/v1'
+      }
+      // Otherwise use whatever custom URL the user provided
+    } 
+    else if (process.env.OPENAI_API_KEY) {
       const currentDate = new Date().toISOString().split('T')[0]
       const systemMessage = `${options.systemMessage} 
 Knowledge cutoff: ${openaiOptions.tokenLimits.knowledgeCutOff}

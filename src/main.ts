@@ -50,7 +50,7 @@ async function run(): Promise<void> {
     )
   } catch (e: any) {
     warning(
-      `Skipped: failed to create summary bot, please check your openai_api_key: ${e}, backtrace: ${e.stack}`
+      `Skipped: failed to create summary bot, please check your API key (MISTRAL_API_KEY, FIREWORKS_API_KEY, or OPENAI_API_KEY): ${e}, backtrace: ${e.stack}`
     )
     return
   }
@@ -63,7 +63,7 @@ async function run(): Promise<void> {
     )
   } catch (e: any) {
     warning(
-      `Skipped: failed to create review bot, please check your openai_api_key: ${e}, backtrace: ${e.stack}`
+      `Skipped: failed to create review bot, please check your API key (MISTRAL_API_KEY, FIREWORKS_API_KEY, or OPENAI_API_KEY): ${e}, backtrace: ${e.stack}`
     )
     return
   }
